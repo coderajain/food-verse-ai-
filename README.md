@@ -11,7 +11,7 @@
 
 **A powerful multimodal AI agent for food intelligence — built with Google Gemini 1.5 Flash**
 
-[🚀 Live Demo](https://foodverse-ai.streamlit.app) · [📂 GitHub](https://github.com/coderajain/food-verse-ai-) · [📖 Docs](#)
+[🚀 Live Demo](https://bo6qsblu3b4qtdohmnoxgw.streamlit.app/) · [📂 GitHub](https://github.com/coderajain/food-verse-ai-) · [📖 Docs](#)
 
 </div>
 
