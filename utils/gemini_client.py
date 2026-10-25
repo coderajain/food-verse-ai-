@@ -16,13 +16,13 @@ def get_gemini_client():
 def get_vision_model():
     """Return Gemini vision model."""
     get_gemini_client()
-    return genai.GenerativeModel("gemini-2.5-flash")
+    return genai.GenerativeModel("gemini-3.8-flash")
 
 def get_chat_model():
     """Return Gemini chat model."""
     get_gemini_client()
     return genai.GenerativeModel(
-        "gemini-2.5-flash",
+        "gemini-3.8-flash",
         system_instruction="""You are FoodVerse AI, an expert multimodal food intelligence agent. 
         You specialize in:
         - Identifying foods and ingredients from images
