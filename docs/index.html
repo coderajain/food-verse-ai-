@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FoodVerse AI — Multimodal Food Intelligence Agent</title>
+  <meta name="description" content="FoodVerse AI: A multimodal food intelligence agent powered by Google Gemini 1.5 Flash. Upload food photos, chat with AI chef, analyze nutrition, generate recipes."/>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍽️</text></svg>"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --orange: #FF6B35;
+      --orange-light: #F7C59F;
+      --bg: #0F0F1A;
+      --bg2: #1A1A2E;
+      --bg3: #16213E;
+      --text: #FFFFFF;
+      --muted: rgba(255,255,255,0.65);
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+
+    /* NAV */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1rem 2rem;
+      background: rgba(15,15,26,0.85); backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255,107,53,0.2);
+    }
+    .nav-logo { font-size: 1.3rem; font-weight: 800; color: var(--orange); text-decoration: none; }
+    .nav-links { display: flex; gap: 1.5rem; list-style: none; }
+    .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.9rem; transition: color .2s; }
+    .nav-links a:hover { color: var(--orange); }
+    .nav-cta { background: var(--orange); color: white; border: none; padding: 0.5rem 1.2rem; border-radius: 8px; font-weight: 600; cursor: pointer; text-decoration: none; font-size: 0.9rem; transition: opacity .2s; }
+    .nav-cta:hover { opacity: 0.85; }
+
+    /* HERO */
+    .hero {
+      min-height: 100vh; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; text-align: center;
+      padding: 6rem 2rem 3rem;
+      background: radial-gradient(ellipse at 50% 0%, rgba(255,107,53,0.18) 0%, transparent 65%);
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      background: rgba(255,107,53,0.12); border: 1px solid rgba(255,107,53,0.4);
+      border-radius: 100px; padding: 0.35rem 1rem; font-size: 0.8rem; color: var(--orange);
+      margin-bottom: 1.5rem;
+    }
+    .hero h1 { font-size: clamp(2.5rem, 7vw, 5rem); font-weight: 900; line-height: 1.1; margin-bottom: 1rem; }
+    .hero h1 span { color: var(--orange); }
+    .hero p { font-size: 1.15rem; color: var(--muted); max-width: 600px; margin: 0 auto 2.5rem; }
+    .btn-group { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--orange), #ff8c5a);
+      color: white; padding: 0.85rem 2rem; border-radius: 12px;
+      font-weight: 700; font-size: 1rem; text-decoration: none;
+      box-shadow: 0 4px 20px rgba(255,107,53,0.4); transition: transform .2s, box-shadow .2s;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(255,107,53,0.5); }
+    .btn-secondary {
+      background: rgba(255,255,255,0.07); color: white;
+      padding: 0.85rem 2rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.15);
+      font-weight: 600; font-size: 1rem; text-decoration: none; transition: background .2s;
+    }
+    .btn-secondary:hover { background: rgba(255,255,255,0.12); }
+    .badges { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem; margin-top: 2.5rem; }
+    .badge { background: rgba(255,107,53,0.1); border: 1px solid rgba(255,107,53,0.3); border-radius: 100px; padding: 0.25rem 0.85rem; font-size: 0.78rem; color: var(--orange-light); }
+
+    /* STATS */
+    .stats { display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap; padding: 2rem; }
+    .stat { text-align: center; }
+    .stat-num { font-size: 2.2rem; font-weight: 800; color: var(--orange); }
+    .stat-lbl { font-size: 0.8rem; color: var(--muted); }
+
+    /* SECTION */
+    section { padding: 5rem 2rem; max-width: 1100px; margin: 0 auto; }
+    .section-tag { color: var(--orange); font-size: 0.82rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 0.75rem; }
+    .section-title { font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 800; margin-bottom: 1rem; }
+    .section-desc { color: var(--muted); font-size: 1.05rem; max-width: 560px; }
+
+    /* FEATURES GRID */
+    .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.25rem; margin-top: 3rem; }
+    .feature-card {
+      background: var(--bg2); border: 1px solid rgba(255,107,53,0.2);
+      border-radius: 16px; padding: 1.75rem;
+      transition: transform .2s, border-color .2s, box-shadow .2s;
+    }
+    .feature-card:hover { transform: translateY(-4px); border-color: rgba(255,107,53,0.6); box-shadow: 0 8px 24px rgba(255,107,53,0.15); }
+    .feature-icon { font-size: 2.2rem; margin-bottom: 1rem; }
+    .feature-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.4rem; }
+    .feature-desc { font-size: 0.88rem; color: var(--muted); }
+
+    /* HOW IT WORKS */
+    .how-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-top: 3rem; }
+    .how-card { text-align: center; padding: 2rem 1.25rem; background: var(--bg3); border-radius: 16px; border: 1px solid rgba(255,255,255,0.07); }
+    .how-num { width: 48px; height: 48px; background: var(--orange); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.2rem; margin: 0 auto 1rem; }
+    .how-title { font-weight: 700; margin-bottom: 0.5rem; }
+    .how-desc { font-size: 0.85rem; color: var(--muted); }
+
+    /* TECH STACK */
+    .tech-grid { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 2rem; }
+    .tech-chip {
+      display: flex; align-items: center; gap: 0.5rem;
+      background: var(--bg2); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px; padding: 0.6rem 1.1rem; font-size: 0.9rem; font-weight: 600;
+    }
+
+    /* DEMO SECTION */
+    .demo-section {
+      background: linear-gradient(135deg, rgba(255,107,53,0.12), rgba(247,197,159,0.05));
+      border: 1px solid rgba(255,107,53,0.25); border-radius: 24px;
+      padding: 3rem; text-align: center; margin: 3rem auto;
+      max-width: 1100px;
+    }
+    .demo-section h2 { font-size: 2rem; margin-bottom: 1rem; }
+    .demo-section p { color: var(--muted); margin-bottom: 2rem; }
+
+    /* MOCK UI */
+    .mock-ui {
+      background: var(--bg); border: 1px solid rgba(255,107,53,0.3);
+      border-radius: 16px; overflow: hidden; max-width: 800px; margin: 0 auto;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+    }
+    .mock-bar {
+      background: var(--bg2); padding: 0.75rem 1rem;
+      display: flex; align-items: center; gap: 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+    .mock-dot { width: 12px; height: 12px; border-radius: 50%; }
+    .mock-url { flex: 1; background: rgba(255,255,255,0.05); border-radius: 6px; padding: 0.25rem 0.75rem; font-size: 0.8rem; color: var(--muted); margin-left: 0.5rem; }
+    .mock-body { padding: 2rem; }
+    .mock-hero-inner { text-align: center; padding: 2rem; background: linear-gradient(135deg, rgba(255,107,53,0.2), rgba(247,197,159,0.1)); border-radius: 12px; margin-bottom: 1.5rem; }
+    .mock-title { font-size: 1.8rem; font-weight: 800; }
+    .mock-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; }
+    .mock-card { background: var(--bg2); border: 1px solid rgba(255,107,53,0.2); border-radius: 10px; padding: 1rem; text-align: center; font-size: 0.8rem; }
+    .mock-card-icon { font-size: 1.5rem; margin-bottom: 0.4rem; }
+
+    /* DEPLOY STEPS */
+    .steps { counter-reset: step; display: grid; gap: 1rem; margin-top: 2rem; }
+    .step { display: flex; gap: 1rem; align-items: flex-start; padding: 1.25rem; background: var(--bg2); border-radius: 12px; border: 1px solid rgba(255,255,255,0.07); }
+    .step-num { flex-shrink: 0; width: 32px; height: 32px; background: var(--orange); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; }
+    .step-content h4 { font-weight: 700; margin-bottom: 0.2rem; }
+    .step-content p { font-size: 0.88rem; color: var(--muted); }
+    .step-content a { color: var(--orange); }
+    .step-content code { background: rgba(255,107,53,0.15); color: var(--orange); padding: 2px 6px; border-radius: 4px; font-size: 0.82rem; }
+
+    /* FOOTER */
+    footer {
+      border-top: 1px solid rgba(255,255,255,0.07); text-align: center;
+      padding: 2rem; color: var(--muted); font-size: 0.85rem;
+    }
+    footer a { color: var(--orange); text-decoration: none; }
+
+    @media(max-width:600px) {
+      .mock-cards { grid-template-columns: repeat(2,1fr); }
+      .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="#">🍽️ FoodVerse AI</a>
+  <ul class="nav-links">
+    <li><a href="#features">Features</a></li>
+    <li><a href="#how">How It Works</a></li>
+    <li><a href="#deploy">Demo</a></li>
+    <li><a href="#tech">Tech Stack</a></li>
+  </ul>
+  <a class="nav-cta" href="https://github.com/coderajain/food-verse-ai-" target="_blank">⭐ GitHub</a>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-badge">🤖 Powered by Google Gemini 1.5 Flash</div>
+  <h1>🍽️ <span>FoodVerse</span> AI</h1>
+  <p>Multimodal Food Intelligence Agent — Upload food photos, chat with an AI chef, analyze nutrition, and generate personalized recipes instantly.</p>
+  <div class="btn-group">
+    <a class="btn-primary" href="https://github.com/coderajain/food-verse-ai-" target="_blank">🚀 View on GitHub</a>
+    <a class="btn-secondary" href="#deploy">📺 Live Demo Setup</a>
+  </div>
+  <div class="badges">
+    <span class="badge">🖼️ Vision AI</span>
+    <span class="badge">💬 Conversational Agent</span>
+    <span class="badge">🥗 Nutrition Analysis</span>
+    <span class="badge">📋 Recipe Generation</span>
+    <span class="badge">🌍 50+ Cuisines</span>
+    <span class="badge">🆓 Free to Deploy</span>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="stats">
+  <div class="stat"><div class="stat-num">1M+</div><div class="stat-lbl">Food Items Recognized</div></div>
+  <div class="stat"><div class="stat-num">500K+</div><div class="stat-lbl">Recipes Generated</div></div>
+  <div class="stat"><div class="stat-num">50+</div><div class="stat-lbl">Cuisines Supported</div></div>
+  <div class="stat"><div class="stat-num">4</div><div class="stat-lbl">AI-Powered Features</div></div>
+</div>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="section-tag">Core Capabilities</div>
+  <h2 class="section-title">Everything You Need for Food AI</h2>
+  <p class="section-desc">Four powerful AI-driven features built on Google Gemini's multimodal capabilities.</p>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">📸</div>
+      <div class="feature-title">Food Recognition</div>
+      <div class="feature-desc">Upload any food photo → Gemini Vision identifies the dish, provides recipes, nutritional estimates, and cultural history with 4 analysis modes.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">💬</div>
+      <div class="feature-title">AI Food Chat</div>
+      <div class="feature-desc">Conversational AI agent with 6 chef personas — World Expert, Professional Chef, Nutrition Coach, Vegan Specialist, Asian Expert & Italian Maestro.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🥗</div>
+      <div class="feature-title">Nutrition Analyzer</div>
+      <div class="feature-desc">Get detailed calorie, macro & micronutrient breakdowns from food images or text descriptions, with interactive charts and daily goal tracking.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📋</div>
+      <div class="feature-title">Recipe Generator</div>
+      <div class="feature-desc">Generate personalized recipes from available ingredients, cuisine preferences, food photos, or get a full 7-day meal plan with shopping list.</div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <div class="section-tag">Process</div>
+  <h2 class="section-title">How It Works</h2>
+  <div class="how-grid">
+    <div class="how-card">
+      <div class="how-num">1</div>
+      <div class="how-title">Input</div>
+      <div class="how-desc">Upload a food photo or type your query to the AI agent</div>
+    </div>
+    <div class="how-card">
+      <div class="how-num">2</div>
+      <div class="how-title">Analyze</div>
+      <div class="how-desc">Gemini 1.5 Flash processes multimodal input with food intelligence</div>
+    </div>
+    <div class="how-card">
+      <div class="how-num">3</div>
+      <div class="how-title">Discover</div>
+      <div class="how-desc">Get recipes, nutrition facts, meal plans & culinary insights instantly</div>
+    </div>
+  </div>
+</section>
+
+<!-- MOCK UI PREVIEW -->
+<div class="demo-section" id="demo">
+  <h2>🖥️ App Preview</h2>
+  <p>Modern dark-themed UI with food-verse orange branding, powered by Streamlit</p>
+  <div class="mock-ui">
+    <div class="mock-bar">
+      <div class="mock-dot" style="background:#ff5f57"></div>
+      <div class="mock-dot" style="background:#ffbd2e"></div>
+      <div class="mock-dot" style="background:#28c840"></div>
+      <div class="mock-url">🔒 foodverse-ai.streamlit.app</div>
+    </div>
+    <div class="mock-body">
+      <div class="mock-hero-inner">
+        <div class="mock-title">🍽️ FoodVerse AI</div>
+        <div style="color:rgba(255,255,255,0.7); font-size:0.9rem; margin-top:0.5rem">Multimodal Food Intelligence Agent · Powered by Google Gemini</div>
+      </div>
+      <div class="mock-cards">
+        <div class="mock-card"><div class="mock-card-icon">📸</div>Food Recognition</div>
+        <div class="mock-card"><div class="mock-card-icon">💬</div>AI Food Chat</div>
+        <div class="mock-card"><div class="mock-card-icon">🥗</div>Nutrition Analyzer</div>
+        <div class="mock-card"><div class="mock-card-icon">📋</div>Recipe Generator</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DEPLOY STEPS -->
+<section id="deploy">
+  <div class="section-tag">Live Demo</div>
+  <h2 class="section-title">Deploy Your Own Demo</h2>
+  <p class="section-desc">Get a live public URL in under 5 minutes — completely free.</p>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <h4>Get Your Free Gemini API Key</h4>
+        <p>Go to <a href="https://aistudio.google.com/" target="_blank">aistudio.google.com</a> → Click <strong>"Create API Key"</strong> → Copy the key</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <h4>Go to Streamlit Community Cloud</h4>
+        <p>Visit <a href="https://share.streamlit.io" target="_blank">share.streamlit.io</a> → Sign in with GitHub → Click <strong>"New app"</strong></p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <h4>Connect This Repository</h4>
+        <p>Repository: <code>coderajain/food-verse-ai-</code> · Branch: <code>main</code> · File: <code>app.py</code></p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <h4>Add API Key as Secret</h4>
+        <p>Click <strong>"Advanced settings"</strong> → <strong>Secrets</strong> → paste: <code>GEMINI_API_KEY = "your_key_here"</code></p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">5</div>
+      <div class="step-content">
+        <h4>🚀 Deploy!</h4>
+        <p>Click <strong>Deploy</strong> — your live URL will be ready in ~2 minutes. Share it on SkillWallet!</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TECH STACK -->
+<section id="tech">
+  <div class="section-tag">Technology</div>
+  <h2 class="section-title">Built With</h2>
+  <div class="tech-grid">
+    <div class="tech-chip">🤖 Google Gemini 1.5 Flash</div>
+    <div class="tech-chip">👁️ Vision AI (Multimodal)</div>
+    <div class="tech-chip">🐍 Python 3.9+</div>
+    <div class="tech-chip">⚡ Streamlit</div>
+    <div class="tech-chip">📊 Plotly</div>
+    <div class="tech-chip">☁️ Streamlit Cloud</div>
+    <div class="tech-chip">🔑 Google AI Studio</div>
+    <div class="tech-chip">📦 google-generativeai SDK</div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p>🍽️ <strong>FoodVerse AI</strong> — Multimodal Food Intelligence Agent</p>
+  <p style="margin-top:0.5rem">
+    Built by <a href="https://github.com/coderajain" target="_blank">@coderajain</a> ·
+    <a href="https://github.com/coderajain/food-verse-ai-" target="_blank">GitHub</a> ·
+    Powered by Google Gemini
+  </p>
+</footer>
+
+</body>
+</html>
